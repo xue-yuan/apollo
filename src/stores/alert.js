@@ -5,12 +5,16 @@ export const useAlertStore = defineStore("alert", {
     text: "",
     color: "",
     show: false,
+    timeout: 2000,
   }),
   actions: {
     showSnackbar({ text, color }) {
       this.text = text;
       this.color = color;
       this.show = true;
+    },
+    closeSnackbar() {
+      this.show = false;
     },
   },
 });

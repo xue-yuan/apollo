@@ -1,30 +1,12 @@
 import Callback from "@/pages/Callback.vue";
-import Home from "@/pages/Home.vue";
+import Index from "@/pages/Index.vue";
 import Login from "@/pages/Login.vue";
-import Test from "@/pages/Test.vue";
-import LikedSong from "@/pages/LikedSong.vue";
 
 export default [
   {
     path: "/",
-    name: "Home",
-    component: Home,
-    meta: {
-      requiresAuth: true,
-    },
-  },
-  {
-    path: "/test",
-    name: "Test",
-    component: Test,
-    meta: {
-      requiresAuth: true,
-    },
-  },
-  {
-    path: "/liked-song",
-    name: "LikedSong",
-    component: LikedSong,
+    name: "Index",
+    component: Index,
     meta: {
       requiresAuth: true,
     },

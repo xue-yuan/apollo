@@ -4,7 +4,6 @@
 
 <script setup>
 import { useAuthStore } from "@/stores/auth.js";
-
 import { base64encode, generateRandomString, sha256 } from "@/utils.js";
 
 const authStore = useAuthStore();

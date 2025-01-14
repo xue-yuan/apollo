@@ -1,18 +1,16 @@
 <template>
   <v-snackbar
-    v-model="props.show"
-    :timeout="props.timeout"
-    :color="props.color"
+    variant="tonal"
+    v-model="alertStore.show"
+    :timeout="alertStore.timeout"
+    :color="alertStore.color"
   >
-    {{ props.text }}
-    <template v-slot:actions>
-      <v-btn variant="text" :visible="props.show" @click="props.show = false"
-        >X</v-btn
-      >
-    </template>
+    {{ alertStore.text }}
   </v-snackbar>
 </template>
 
 <script setup>
-const props = defineProps(["text", "color", "show", "timeout"]);
+import { useAlertStore } from "@/stores/alert";
+
+const alertStore = useAlertStore();
 </script>

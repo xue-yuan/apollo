@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { useRouter } from "vue-router";
+import { useAlertStore } from "./alert";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -10,6 +11,9 @@ export const useAuthStore = defineStore("auth", {
   actions: {
     loadCodeVerifier() {
       this.codeVerifier = window.localStorage.getItem("code_verifier");
+    },
+    getCodeVerifier() {
+      return window.localStorage.getItem("code_verifier");
     },
     setCodeVerifier(codeVerifier) {
       window.localStorage.setItem("code_verifier", codeVerifier);
@@ -30,35 +34,80 @@ export const useAuthStore = defineStore("auth", {
       window.localStorage.removeItem("access_token");
       window.localStorage.removeItem("refresh_token");
     },
+    async getAccessToken(code) {
+      const alertStore = useAlertStore();
+      const router = useRouter();
+      const codeVerifier = this.getCodeVerifier();
+      const tokenUrl = import.meta.env.VITE_SPOTIFY_API_TOKEN;
+      const payload = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          client_id: import.meta.env.VITE_SPOTIFY_CLIENT_ID,
+          grant_type: "authorization_code",
+          code,
+          redirect_uri: import.meta.env.VITE_SPOTIFY_REDIRECT_URI,
+          code_verifier: codeVerifier,
+        }),
+      };
+
+      await fetch(tokenUrl, payload)
+        .then(async (response) => {
+          if (response.ok) {
+            return response.json();
+          }
+          throw { response, error: await response.json() };
+        })
+        .then((data) => {
+          this.setToken(data.access_token, data.refresh_token);
+          this.removeCodeVerifier();
+          router.push("/");
+        })
+        .catch((error) => {
+          alertStore.showSnackbar({ text: error, color: red });
+          console.error("Error exchanging code for tokens", error);
+
+          this.removeToken();
+          router.push("/login");
+        });
+    },
     async refreshAccessToken() {
-      try {
-        const payload = {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: new URLSearchParams({
-            client_id: import.meta.env.VITE_SPOTIFY_CLIENT_ID,
-            grant_type: "refresh_token",
-            refresh_token: this.refreshToken,
-          }),
-        };
-        const tokenUrl = import.meta.env.VITE_SPOTIFY_API_TOKEN;
-        const body = await fetch(tokenUrl, payload);
-        const response = await body.json();
+      const router = useRouter();
+      const tokenUrl = import.meta.env.VITE_SPOTIFY_API_TOKEN;
+      const payload = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        },
+        body: new URLSearchParams({
+          client_id: import.meta.env.VITE_SPOTIFY_CLIENT_ID,
+          grant_type: "refresh_token",
+          refresh_token: this.refreshToken,
+        }),
+      };
 
-        this.setToken(
-          response.accessToken,
-          response.refreshToken ?? this.refreshToken,
-        );
-      } catch (error) {
-        // TODO: USE snackbar
-        console.error("Error refreshing access token", error);
+      await fetch(tokenUrl, payload)
+        .then(async (response) => {
+          if (response.ok) {
+            return response.json();
+          }
+          throw { response, error: await response.json() };
+        })
+        .then((data) => {
+          this.setToken(
+            data.access_token,
+            data.refresh_token ?? this.refreshToken,
+          );
+        })
+        .catch((error) => {
+          alertStore.showSnackbar({ text: error, color: red });
+          console.error("Error refreshing access token", error);
 
-        this.removeToken();
-        const router = useRouter();
-        router.push("/");
-      }
+          this.removeToken();
+          router.push("/login");
+        });
     },
   },
 });
