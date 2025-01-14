@@ -51,6 +51,8 @@ import LikedSong from "@/components/LikedSong.vue";
 import Playlist from "@/components/Playlist.vue";
 import { ref } from "vue";
 
+// TODO: ref -> shallowRef or markRaw if they are not reactive
+
 const currentComponent = ref(Home);
 
 const setComponent = (componentName) => {
